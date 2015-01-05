@@ -1,0 +1,7 @@
+*.o
+host/simple_client
+ta/out-client-aarch32
+GPATH
+GRTAGS
+GSYMS
+GTAGS
