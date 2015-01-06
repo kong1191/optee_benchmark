@@ -25,7 +25,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define STR_TRACE_USER_TA "COMCAST_CRYPTO_TA"
 #include "string.h"
 
 #include <utee_defines.h>
@@ -36,63 +35,9 @@
 #include <tee_internal_api.h>
 #include <tee_internal_api_extensions.h>
 
+#include <arm_sys_counter.h>
 #include "simple_ta.h"
 
-
-
-static uint32_t do_div(uint64_t *dividend, uint32_t divisor)
-{
-	mpa_word_t remainder = 0, n0, n1;
-	n0 = (*dividend) & UINT_MAX;
-	n1 = ((*dividend) >> WORD_SIZE) & UINT_MAX;
-	*dividend = __mpa_div_dword(n0, n1, divisor, &remainder);
-	return remainder;
-}
-
-
-static uint64_t read_cntpct(void)
-{
-	uint64_t val;
-	uint32_t low, high;
-	__asm__ volatile("mrrc	p15, 0, %0, %1, c14\n"
-		: "=r"(low), "=r"(high)
-		:
-		: "memory");
-	val = low | ((uint64_t)high << WORD_SIZE);
-	return val;
-}
-
-
-static uint32_t read_cntfrq(void)
-{
-	uint32_t frq;
-	__asm__ volatile("mrc	p15, 0, %0, c14, c0, 0\n"
-		: "=r"(frq)
-		:
-		: "memory");
-	return frq;
-}
-
-
-static TEE_Result get_sys_time(TEE_Time *time)
-{
-	uint64_t cntpct = read_cntpct();
-	uint32_t cntfrq = read_cntfrq();
-	uint32_t remainder;
-
-	remainder = do_div(&cntpct, cntfrq);
-
-	time->seconds = (uint32_t)cntpct;
-	time->millis = remainder / (cntfrq / TEE_TIME_MILLIS_BASE);
-
-	return TEE_SUCCESS;
-}
-
-
-static int32_t time_diff(TEE_Time start, TEE_Time end)
-{
-	return (end.seconds*1000 + end.millis) - (start.seconds*1000 + start.millis);
-}
 
 /*
  * Called when the instance of the TA is created. This is the first call in
@@ -100,10 +45,7 @@ static int32_t time_diff(TEE_Time start, TEE_Time end)
  */
 TEE_Result TA_CreateEntryPoint(void)
 {
-	TEE_Time sys_time;
-	get_sys_time(&sys_time);
-
-	DMSG("[%d.%d] has been called", sys_time.seconds, sys_time.millis);
+	DMSG("has been called");
 	return TEE_SUCCESS;
 }
 
@@ -125,9 +67,9 @@ void TA_DestroyEntryPoint(void)
 TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 		TEE_Param  params[4], void **sess_ctx)
 {
-	TEE_Time sys_time;
+	uint64_t ta_counter_value = arm_sys_counter_get_counter();
 
-	uint32_t exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_NONE,
+	uint32_t exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_MEMREF_OUTPUT,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE);
@@ -135,15 +77,16 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	/* Unused parameters */
-	(void)&params;
 	(void)&sess_ctx;
+
+	/* Return system counter value to Host app */
+	memcpy(params[0].memref.buffer, &ta_counter_value, sizeof(ta_counter_value));
 
 	/*
 	 * The DMSG() macro is non-standard, TEE Internal API doesn't
 	 * specify any means to logging from a TA.
 	 */
-	get_sys_time(&sys_time);
-	DMSG("[%d.%d] has been called (session opened with the Comcast Crypto TA)", sys_time.seconds, sys_time.millis);
+	DMSG("has been called (session opened with the Simple TA)");
 
 	/* If return value != TEE_SUCCESS the session will not be created. */
 	return TEE_SUCCESS;
@@ -169,19 +112,15 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 			uint32_t param_types, TEE_Param params[4])
 {
 	TEE_Result result = TEE_SUCCESS;
-	TEE_Time sys_time, sys_time2, kernel_sys_time;
-	int32_t api_round_trip_time = 0;
+	uint64_t enter_function_counter_value = arm_sys_counter_get_counter();
+	uint64_t sys_call_start_counter_value = 0;
+	uint64_t sys_call_received_counter_value = 0;
+	uint64_t sys_call_return_counter_value = 0;
+	uint64_t one_way_trip_counter_value = 0;
+	uint64_t round_trip_counter_value = 0;
+	uint32_t exp_param_types = 0;
 
-	uint32_t exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_MEMREF_OUTPUT,
-						   TEE_PARAM_TYPE_NONE,
-						   TEE_PARAM_TYPE_NONE,
-						   TEE_PARAM_TYPE_NONE);
-	if (param_types != exp_param_types) {
-		return TEE_ERROR_BAD_PARAMETERS;
-	}
-
-	get_sys_time(&sys_time);
-	DMSG("[%d.%d] Enter Invoke Command Entry Point", sys_time.seconds, sys_time.millis);
+	DMSG("Enter Invoke Command Entry Point");
 
 	(void)&sess_ctx; /* Unused parameter */
 
@@ -194,29 +133,54 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 	 * i.e, one for SHA1 and one for SHA256.
 	 */
 	switch (cmd_id) {
-	case TAF_MEASURE_SECURE_API_TIME:
-		TEE_GetSystemTime(&kernel_sys_time);
-		get_sys_time(&sys_time2);
+	case TAF_MEASURE_SYS_CALL_TIME:
+		exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_MEMREF_OUTPUT,
+								TEE_PARAM_TYPE_MEMREF_OUTPUT,
+								TEE_PARAM_TYPE_NONE,
+								TEE_PARAM_TYPE_NONE);
 
-		DMSG("kernel_sys_time=%d.%d", kernel_sys_time.seconds, kernel_sys_time.millis);
-		DMSG("sys call round trip time=%d (ms)", time_diff(sys_time, sys_time2));
-		DMSG("sys call single trip time=%d (ms)", time_diff(sys_time, kernel_sys_time));
+		if (param_types != exp_param_types) {
+			result = TEE_ERROR_BAD_PARAMETERS;
+			break;
+		}
 
-		api_round_trip_time = time_diff(sys_time, sys_time2);
-		memcpy(params[0].memref.buffer, &api_round_trip_time, sizeof(api_round_trip_time));
-		params[0].memref.size = sizeof(api_round_trip_time);
+		sys_call_start_counter_value = arm_sys_counter_get_counter();
+
+		TEE_GetSystemCounter(&sys_call_received_counter_value);
+
+		sys_call_return_counter_value = arm_sys_counter_get_counter();
+
+		one_way_trip_counter_value = sys_call_received_counter_value - sys_call_start_counter_value;
+		params[0].memref.size = sizeof(one_way_trip_counter_value);
+		memcpy(params[0].memref.buffer, &one_way_trip_counter_value, params[0].memref.size);
+
+		round_trip_counter_value = sys_call_return_counter_value - sys_call_start_counter_value;
+		params[1].memref.size = sizeof(round_trip_counter_value);
+		memcpy(params[1].memref.buffer, &round_trip_counter_value, params[1].memref.size);
 
 		break;
+
 	case TAF_REPORT_TIMESTAMP:
-		get_sys_time(params[0].memref.buffer);
-		params[0].memref.size = sizeof(TEE_Time);
+		exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_MEMREF_OUTPUT,
+								TEE_PARAM_TYPE_NONE,
+								TEE_PARAM_TYPE_NONE,
+								TEE_PARAM_TYPE_NONE);
+
+		if (param_types != exp_param_types) {
+			result = TEE_ERROR_BAD_PARAMETERS;
+			break;
+		}
+
+		memcpy(params[0].memref.buffer, &enter_function_counter_value, sizeof(enter_function_counter_value));
+		params[0].memref.size = sizeof(enter_function_counter_value);
 		break;
+
 	default:
+		result = TEE_ERROR_NOT_IMPLEMENTED;
 		break;
 	}
 
-	get_sys_time(&sys_time);
-	DMSG("[%d.%d] Leave Invoke Command Entry Point", sys_time.seconds, sys_time.millis);
+	DMSG("Leave Invoke Command Entry Point");
 
 	return result;
 }

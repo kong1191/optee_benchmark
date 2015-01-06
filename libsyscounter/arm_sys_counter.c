@@ -16,7 +16,7 @@
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * liABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
@@ -24,18 +24,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SIMPLE_TA_H
-#define SIMPLE_TA_H
+#include <arm_sys_counter.h>
 
-/* This UUID is generated with uuidgen
-   the ITU-T UUID generator at http://www.itu.int/ITU-T/asn1/uuid.html */
-#define SIMPLE_TA_UUID { 0x99e937a0, 0x8f3e, 0x11e4, \
-		{ 0x8b, 0x8f, 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b} }
+#define WORD_SIZE 32
 
-/* The TAFs ID implemented in this TA */
-enum TAF_ID {
-	TAF_MEASURE_SYS_CALL_TIME,
-	TAF_REPORT_TIMESTAMP
-};
+uint64_t arm_sys_counter_get_counter(void)
+{
+	uint64_t val;
+	uint32_t low, high;
+	__asm__ volatile("mrrc	p15, 0, %0, %1, c14\n"
+		: "=r"(low), "=r"(high)
+		:
+		: "memory");
+	val = low | ((uint64_t)high << WORD_SIZE);
+	return val;
+}
 
-#endif
+
+uint32_t arm_sys_counter_get_frequency(void)
+{
+	uint32_t frq;
+	__asm__ volatile("mrc	p15, 0, %0, c14, c0, 0\n"
+		: "=r"(frq)
+		:
+		: "memory");
+	return frq;
+}

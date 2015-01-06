@@ -7,7 +7,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 READELF = $(CROSS_COMPILE)readelf
 
-OBJS = simple_client.o
+OBJS = simple_client.o arm_sys_counter.o
 
 CFLAGS += -Wall -I../ta/include -I$(TEEC_EXPORT)/include -I./include
 LDADD += -lteec -L$(TEEC_EXPORT)/lib
