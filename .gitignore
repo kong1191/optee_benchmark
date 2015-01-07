@@ -1,4 +1,5 @@
 *.o
+build_app.sh
 host/simple_client
 ta/out-client-aarch32
 GPATH

@@ -410,6 +410,27 @@ EOF
 chmod 711 $DEV_PATH/update_rootfs.sh
 
 ################################################################################
+# Generate optee_benchmark/build_app.sh                                        #
+################################################################################
+cd $DST_OPTEE_BENCHMARK
+cat > $DST_OPTEE_BENCHMARK/build_app.sh << EOF
+#!/bin/bash
+DEVEL_PATH=$DEV_PATH
+export PATH=\$DEVEL_PATH/toolchains/aarch32/bin:\$PATH
+
+export TA_DEV_KIT_DIR=\$DEVEL_PATH/out-os-qemu/export-user_ta
+export TEEC_EXPORT=\$DEVEL_PATH/out-client-armv7/export
+
+cd \$DEVEL_PATH/optee_benchmark
+make O=./out-client-aarch32 \\
+     HOST_CROSS_COMPILE=arm-linux-gnueabihf- \\
+     TA_CROSS_COMPILE=arm-linux-gnueabihf- \\
+     \$@
+EOF
+
+chmod 711 $DST_OPTEE_BENCHMARK/build_app.sh
+
+################################################################################
 # Generate build.sh                                                            #
 ################################################################################
 cd $DEV_PATH
