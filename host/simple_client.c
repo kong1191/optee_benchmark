@@ -94,6 +94,7 @@ TEEC_Result measure_time_of_open_session(TEEC_UUID *uuid, TEEC_Context *ctx, TEE
 
 		printf("Performance Measurement: [Host app. to Trusted app. Open session]\n");
 		printf("\tSystem counter frequency = %d\n", freq);
+		printf("\tCounter: start=%lld  ta=%lld  end=%lld\n", counter_start, counter_ta, counter_end);
 		printf("\tOne way trip clock count = %lld  time = %lld us\n", one_way_clock_count, one_way_time);
 		printf("\tRound trip clock count = %lld  time = %lld us\n", round_trip_clock_count, round_trip_time);
 	}
@@ -139,6 +140,7 @@ TEEC_Result measure_time_of_invoke_command(TEEC_Session *sess)
 
 		printf("Performance Measurement: [Host app. to Trusted app. Invoke command]\n");
 		printf("\tSystem counter frequency = %d\n", freq);
+		printf("\tCounter: start=%lld  ta=%lld  end=%lld\n", counter_start, counter_ta, counter_end);
 		printf("\tOne way trip clock count = %lld  time = %lld us\n", one_way_clock_count, one_way_time);
 		printf("\tRound trip clock count = %lld  time = %lld us\n", round_trip_clock_count, round_trip_time);
 	}

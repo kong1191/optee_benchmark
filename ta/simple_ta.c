@@ -82,6 +82,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 	/* Return system counter value to Host app */
 	memcpy(params[0].memref.buffer, &ta_counter_value, sizeof(ta_counter_value));
 
+	DMSG("counter ta=%lld", ta_counter_value);
 	/*
 	 * The DMSG() macro is non-standard, TEE Internal API doesn't
 	 * specify any means to logging from a TA.
@@ -157,6 +158,12 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 		round_trip_counter_value = sys_call_return_counter_value - sys_call_start_counter_value;
 		params[1].memref.size = sizeof(round_trip_counter_value);
 		memcpy(params[1].memref.buffer, &round_trip_counter_value, params[1].memref.size);
+
+		DMSG("System Call Performance Measurement:");
+		DMSG("\tCounter: start=%lld  received=%lld  end=%lld",
+				sys_call_start_counter_value, sys_call_received_counter_value, sys_call_return_counter_value);
+		DMSG("\tone_way_trip_counter_value=%lld", one_way_trip_counter_value);
+		DMSG("\tround_trip_counter_value=%lld", round_trip_counter_value);
 
 		break;
 
