@@ -1,16 +1,16 @@
-Simple TA for OP-TEE benchmark
+Simple client and simple TA for OP-TEE benchmark
 ---
 
-This simple Trusted Application serves the purpose of showing how you could open up functionality from a TEE or just simply how to interact with a TEE using GlobalPlatform interfaces. In this case we have been using OP-TEE as the TEE, but since OP-TEE is a GlobalPlatform compliant TEE. It should be possible to run the same application on other GlobalPlatform compliant TEEs also.
+This simple host/trusted application serves the purpose of measuring the performance of OP-TEE. They are based on the customized [optee_linuxdriver](https://github.com/kong1191/optee_linuxdriver) and [optee_os](https://github.com/kong1191/optee_os).
 
-Building and running the TA
+Building and running the applications
 ---
 #### Building
-Easiest way to test this is to run the script [setup_qemu_optee.sh](https://github.com/OP-TEE/optee_os/blob/master/scripts/setup_qemu_optee.sh) that could be found in the [optee_os](https://github.com/OP-TEE/optee_os) git at GitHub. This script will setup the complete environment needed to run OP-TEE on QEMU. When setup script has been done, you will need to clone this git into the same root folder as you pointed out in the setup script.
+Easiest way to test this is to run the script [setup_qemu_optee.sh](https://github.com/kong1191/optee_benchmark/blob/master/script/setup_qemu_optee.sh). This script will setup the complete environment needed to run OP-TEE on QEMU.
 
-In this git (optee_benchmark.git), there is the script [build_app.sh](build_app.sh) which we recommend that you use when build, since that sets the needed flags and points to the correct folders. You can of course call make directly on the commandline, but you will have to point out all the other things mentioned in "build_app.sh" in any case. When this has been setup, you should be able to build the Trusted Application.
+In this git (optee_benchmark.git), there is the script [build_app.sh](build_app.sh) which we recommend that you use when build, since that sets the needed flags and points to the correct folders. You can of course call make directly on the commandline, but you will have to point out all the other things mentioned in "build_app.sh" in any case. When this has been setup, you should be able to build the applications.
 
-Next step is to get the newly built Trusted Application into the filesystem that is used when booting QEMU. To do this you need to edit the file ```gen_rootfs/filelist-tee.txt``adding lines telling where to find and where to store the test binary and the Trusted Application, like this:
+Next step is to get the newly built applications into the filesystem that is used when booting QEMU. To do this you need to edit the file ```gen_rootfs/filelist-tee.txt``adding lines telling where to find and where to store the test binary and the Trusted Application, like this:
 
 ```
 # TA's
