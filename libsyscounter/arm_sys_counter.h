@@ -28,6 +28,7 @@
 #define OPTEE_BENCHMARK_LIBSYSCOUNTER_ARM_SYS_COUNTER_H_
 
 #include <stdint.h>
+#include <inttypes.h>
 
 uint64_t arm_sys_counter_get_counter(void);
 uint32_t arm_sys_counter_get_frequency(void);

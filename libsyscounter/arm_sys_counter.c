@@ -31,12 +31,18 @@
 uint64_t arm_sys_counter_get_counter(void)
 {
 	uint64_t val;
+
+#ifdef __aarch64__
+	asm volatile("mrs %0, cntpct_el0" : "=r"(val));
+#else
 	uint32_t low, high;
-	__asm__ volatile("mrrc	p15, 0, %0, %1, c14\n"
+	asm volatile("mrrc	p15, 0, %0, %1, c14\n"
 		: "=r"(low), "=r"(high)
 		:
 		: "memory");
 	val = low | ((uint64_t)high << WORD_SIZE);
+#endif
+
 	return val;
 }
 
@@ -44,9 +50,15 @@ uint64_t arm_sys_counter_get_counter(void)
 uint32_t arm_sys_counter_get_frequency(void)
 {
 	uint32_t frq;
-	__asm__ volatile("mrc	p15, 0, %0, c14, c0, 0\n"
+
+#ifdef __aarch64__
+	asm volatile("mrs %0, cntfrq_el0" : "=r"(frq));
+#else
+	asm volatile("mrc	p15, 0, %0, c14, c0, 0\n"
 		: "=r"(frq)
 		:
 		: "memory");
+#endif
+
 	return frq;
 }

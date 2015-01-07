@@ -27,9 +27,9 @@ fi
 
 # Until something official ARM-TF supports loading a partitioned OP-TEE
 # SRC_ARM_TF=https://github.com/ARM-software/arm-trusted-firmware.git
-SRC_ARM_TF=https://github.com/jenswi-linaro/arm-trusted-firmware.git
+SRC_ARM_TF=https://github.com/kong1191/arm-trusted-firmware.git
 DST_ARM_TF=$DEV_PATH/arm-trusted-firmware
-STABLE_ARM_TF_COMMIT=db4b9efe59b4f76e9680836a443158fde0f12e40
+STABLE_ARM_TF_COMMIT=640e3639868207b245552a415277d106c4068bdd
 
 SRC_KERNEL=git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 DST_KERNEL=$DEV_PATH/linux
@@ -313,7 +313,7 @@ export PATH=$DST_AARCH64_NONE_GCC/bin:\$PATH
 export CROSS_COMPILE=$DST_AARCH64_NONE_GCC/bin/aarch64-none-elf-
 export CFLAGS='-O0 -gdwarf-2'
 export DEBUG=1
-export BL32=$DST_OPTEE_OS/out/arm32-plat-vexpress/core/tee.bin
+export BL32=$DST_OPTEE_OS/out-os-fvp/core/tee.bin
 export BL33=$DST_EDK2/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64_EFI.fd
 
 cd $DST_ARM_TF
@@ -339,7 +339,7 @@ cat > $DEV_PATH/build_optee_client.sh << EOF
 export PATH=$DST_AARCH64_GCC/bin:\$PATH
 
 cd $DST_OPTEE_CLIENT
-make -j\`getconf _NPROCESSORS_ONLN\` O=out-client-aarch64 CROSS_COMPILE=aarch64-linux-gnu- \$@
+make -j\`getconf _NPROCESSORS_ONLN\` O=out CROSS_COMPILE=aarch64-linux-gnu- \$@
 EOF
 
 chmod 711 $DEV_PATH/build_optee_client.sh
@@ -409,7 +409,7 @@ export PATH=\$DEVEL_PATH/toolchains/aarch64/bin:\$PATH
 export PATH=\$DEVEL_PATH/toolchains/aarch32/bin:\$PATH
 
 export TA_DEV_KIT_DIR=\$DEVEL_PATH/optee_os/out-os-fvp/export-user_ta
-export TEEC_EXPORT=\$DEVEL_PATH/optee_client/out-client-aarch64/export
+export TEEC_EXPORT=\$DEVEL_PATH/optee_client/out/export
 
 cd \$DEVEL_PATH/optee_benchmark
 make O=./out-client-aarch64 \\
