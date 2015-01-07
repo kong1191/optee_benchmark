@@ -15,11 +15,11 @@ Next step is to get the newly built applications into the filesystem that is use
 ```
 # TA's
 ....
-file /lib/teetz/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta /home/johndoe/devel/qemu_optee/optee_benchmark/ta/out-client-aarch32/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta 444 0 0
+file /lib/teetz/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta /home/johndoe/devel/qemu_optee_benchmark/optee_benchmark/ta/out-client-aarch32/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta 444 0 0
 
 # OP-TEE Tests
 ...
-file /bin/simple_client /home/johndoe/devel/qemu_optee/optee_benchmark/host/simple_client 755 0 0
+file /bin/simple_client /home/johndoe/devel/qemu_optee_benchmark/optee_benchmark/host/simple_client 755 0 0
 ```
 
 When that has been done and the files has been saved, you need to regenerate the filesystem. That could be done by running the script ```build.sh```. For you who wonder about the strange name of the Trusted Application, we can mention that this is coming from the UUID for the particular Trusted Application.
