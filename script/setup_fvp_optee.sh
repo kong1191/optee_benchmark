@@ -3,7 +3,7 @@
 # EDIT so these match your credentials                                         #
 ################################################################################
 DEV_PATH=$HOME/devel/fvp_optee_benchmark
-SRC_FVP=1
+SRC_FVP=
 
 # You only need to set these variables if you have access to the OPTEE_TEST
 # (requires a Linaro account and access to the git called optee_test.git)
