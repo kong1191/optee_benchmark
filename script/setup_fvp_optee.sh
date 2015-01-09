@@ -3,7 +3,7 @@
 # EDIT so these match your credentials                                         #
 ################################################################################
 DEV_PATH=$HOME/devel/fvp_optee_benchmark
-SRC_FVP=
+SRC_FVP=1
 
 # You only need to set these variables if you have access to the OPTEE_TEST
 # (requires a Linaro account and access to the git called optee_test.git)
@@ -27,9 +27,9 @@ fi
 
 # Until something official ARM-TF supports loading a partitioned OP-TEE
 # SRC_ARM_TF=https://github.com/ARM-software/arm-trusted-firmware.git
-SRC_ARM_TF=https://github.com/kong1191/arm-trusted-firmware.git
+SRC_ARM_TF=https://github.com/jenswi-linaro/arm-trusted-firmware.git
 DST_ARM_TF=$DEV_PATH/arm-trusted-firmware
-STABLE_ARM_TF_COMMIT=640e3639868207b245552a415277d106c4068bdd
+STABLE_ARM_TF_COMMIT=db4b9efe59b4f76e9680836a443158fde0f12e40
 
 SRC_KERNEL=git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 DST_KERNEL=$DEV_PATH/linux
@@ -44,7 +44,6 @@ STABLE_CLIENT_COMMIT=2893f86b0925bc6be358a6913a07773b2b909ee3
 
 SRC_OPTEE_LK=https://github.com/kong1191/optee_linuxdriver.git
 DST_OPTEE_LK=$DEV_PATH/optee_linuxdriver
-STABLE_LK_COMMIT=a6026e5c41abe32fc973d8fa5e0fe281bf01a8f3
 
 SRC_OPTEE_TEST=ssh://$LINARO_USERNAME@linaro-private.git.linaro.org/srv/linaro-private.git.linaro.org/swg/optee_test.git
 DST_OPTEE_TEST=$DEV_PATH/optee_test
@@ -79,6 +78,12 @@ DST_AARCH32_GCC=$DEV_PATH/toolchains/$AARCH32_GCC
 ################################################################################
 # Cloning all needed repositories                                              #
 ################################################################################
+if [ ! -d "$DST_OPTEE_BENCHMARK" ]; then
+	git clone $SRC_OPTEE_BENCHMARK $DST_OPTEE_BENCHMARK
+else
+	echo " `basename $DST_OPTEE_BENCHMARK` already exist, not cloning"
+fi
+
 cd $DEV_PATH
 if [ ! -d "$DST_ARM_TF" ]; then
 	git clone $SRC_ARM_TF && cd $DST_ARM_TF && git reset --hard $STABLE_ARM_TF_COMMIT
@@ -88,7 +93,7 @@ fi
 
 cd $DEV_PATH
 if [ ! -d "$DST_KERNEL" ]; then
-	git clone $SRC_KERNEL && cd $DST_KERNEL && git reset --hard $STABLE_KERNEL_COMMIT
+	git clone $SRC_KERNEL && cd $DST_KERNEL && git reset --hard $STABLE_KERNEL_COMMIT && git am $DST_OPTEE_BENCHMARK/linux_patch/*
 else
 	echo " `basename $DST_KERNEL` already exist, not cloning"
 fi
@@ -109,7 +114,7 @@ fi
 
 cd $DEV_PATH
 if [ ! -d "$DST_OPTEE_LK" ]; then
-	git clone $SRC_OPTEE_LK && cd $DST_OPTEE_LK && git reset --hard $STABLE_LK_COMMIT
+	git clone $SRC_OPTEE_LK
 else
 	echo " `basename $DST_OPTEE_LK` already exist, not cloning"
 fi
@@ -119,12 +124,6 @@ if [ ! -d "$DST_OPTEE_TEST" ] && [ -n "$HAVE_ACCESS_TO_OPTEE_TEST" ]; then
 	git clone $SRC_OPTEE_TEST && cd $DST_OPTEE_TEST && git reset --hard $STABLE_OPTEE_TEST_COMMIT
 else
 	echo " `basename $DST_OPTEE_TEST` already exist (or no access), not cloning"
-fi
-
-if [ ! -d "$DST_OPTEE_BENCHMARK" ]; then
-	git clone $SRC_OPTEE_BENCHMARK $DST_OPTEE_BENCHMARK
-else
-	echo " `basename $DST_OPTEE_BENCHMARK` already exist, not cloning"
 fi
 
 cd $DEV_PATH
@@ -318,7 +317,7 @@ export BL33=$DST_EDK2/Build/ArmVExpress-FVP-AArch64/RELEASE_GCC49/FV/FVP_AARCH64
 
 cd $DST_ARM_TF
 make -j\`getconf _NPROCESSORS_ONLN\`   \\
-	DEBUG=$DEBUG                   \\
+	DEBUG=                        \\
 	FVP_TSP_RAM_LOCATION=tdram     \\
 	FVP_SHARED_DATA_LOCATION=tdram \\
 	PLAT=fvp                       \\
