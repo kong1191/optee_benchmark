@@ -30,6 +30,7 @@
 #include <utee_defines.h>
 #include <assert.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <mpa.h>
 
 #include <tee_internal_api.h>
@@ -82,7 +83,6 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 	/* Return system counter value to Host app */
 	memcpy(params[0].memref.buffer, &ta_counter_value, sizeof(ta_counter_value));
 
-	DMSG("counter ta=%lld", ta_counter_value);
 	/*
 	 * The DMSG() macro is non-standard, TEE Internal API doesn't
 	 * specify any means to logging from a TA.
@@ -117,8 +117,6 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 	uint64_t sys_call_start_counter_value = 0;
 	uint64_t sys_call_received_counter_value = 0;
 	uint64_t sys_call_return_counter_value = 0;
-	uint64_t one_way_trip_counter_value = 0;
-	uint64_t round_trip_counter_value = 0;
 	uint32_t exp_param_types = 0;
 
 	DMSG("Enter Invoke Command Entry Point");
@@ -137,7 +135,7 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 	case TAF_MEASURE_SYS_CALL_TIME:
 		exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_MEMREF_OUTPUT,
 								TEE_PARAM_TYPE_MEMREF_OUTPUT,
-								TEE_PARAM_TYPE_NONE,
+								TEE_PARAM_TYPE_MEMREF_OUTPUT,
 								TEE_PARAM_TYPE_NONE);
 
 		if (param_types != exp_param_types) {
@@ -151,19 +149,14 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 
 		sys_call_return_counter_value = arm_sys_counter_get_counter();
 
-		one_way_trip_counter_value = sys_call_received_counter_value - sys_call_start_counter_value;
-		params[0].memref.size = sizeof(one_way_trip_counter_value);
-		memcpy(params[0].memref.buffer, &one_way_trip_counter_value, params[0].memref.size);
+		params[0].memref.size = sizeof(sys_call_start_counter_value);
+		memcpy(params[0].memref.buffer, &sys_call_start_counter_value, params[0].memref.size);
 
-		round_trip_counter_value = sys_call_return_counter_value - sys_call_start_counter_value;
-		params[1].memref.size = sizeof(round_trip_counter_value);
-		memcpy(params[1].memref.buffer, &round_trip_counter_value, params[1].memref.size);
+		params[1].memref.size = sizeof(sys_call_received_counter_value);
+		memcpy(params[1].memref.buffer, &sys_call_received_counter_value, params[1].memref.size);
 
-		DMSG("System Call Performance Measurement:");
-		DMSG("\tCounter: start=%lld  received=%lld  end=%lld",
-				sys_call_start_counter_value, sys_call_received_counter_value, sys_call_return_counter_value);
-		DMSG("\tone_way_trip_counter_value=%lld", one_way_trip_counter_value);
-		DMSG("\tround_trip_counter_value=%lld", round_trip_counter_value);
+		params[1].memref.size = sizeof(sys_call_return_counter_value);
+		memcpy(params[2].memref.buffer, &sys_call_return_counter_value, params[1].memref.size);
 
 		break;
 

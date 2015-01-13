@@ -153,23 +153,26 @@ TEEC_Result measure_time_of_secure_sys_call(TEEC_Session *sess)
 	TEEC_Operation op;
 	TEEC_Result res;
 	uint32_t err_origin;
-	uint64_t sys_call_one_way_clock_count = 0;
-	uint64_t sys_call_round_trip_clock_count = 0;
+	uint64_t start_svc_clock_count = 0;
+	uint64_t enter_svc_clock_count = 0;
+	uint64_t return_svc_clock_count = 0;
 
 
 	memset(&op, 0, sizeof(op));
 
 	op.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_OUTPUT,
 						TEEC_MEMREF_TEMP_OUTPUT,
-						TEEC_NONE,
+						TEEC_MEMREF_TEMP_OUTPUT,
 						TEEC_NONE);
 
-	op.params[0].tmpref.buffer = (void *)&sys_call_one_way_clock_count;
-	op.params[0].tmpref.size = sizeof(sys_call_one_way_clock_count);
+	op.params[0].tmpref.buffer = (void *)&start_svc_clock_count;
+	op.params[0].tmpref.size = sizeof(start_svc_clock_count);
 
-	op.params[1].tmpref.buffer = (void *)&sys_call_round_trip_clock_count;
-	op.params[1].tmpref.size = sizeof(sys_call_round_trip_clock_count);
+	op.params[1].tmpref.buffer = (void *)&enter_svc_clock_count;
+	op.params[1].tmpref.size = sizeof(enter_svc_clock_count);
 
+	op.params[2].tmpref.buffer = (void *)&return_svc_clock_count;
+	op.params[2].tmpref.size = sizeof(return_svc_clock_count);
 
 	res = TEEC_InvokeCommand(sess, TAF_MEASURE_SYS_CALL_TIME, &op, &err_origin);
 
@@ -179,13 +182,16 @@ TEEC_Result measure_time_of_secure_sys_call(TEEC_Session *sess)
 	} else {
 		uint32_t freq = arm_sys_counter_get_frequency();
 
-		uint64_t one_way_time = convert_to_time_in_us(freq, sys_call_one_way_clock_count);
-		uint64_t round_trip_time = convert_to_time_in_us(freq, sys_call_round_trip_clock_count);
+		uint64_t one_way_clock_count = enter_svc_clock_count - start_svc_clock_count;
+		uint64_t round_trip_clock_count = return_svc_clock_count - start_svc_clock_count;
+		uint64_t one_way_time = convert_to_time_in_us(freq, enter_svc_clock_count - start_svc_clock_count);
+		uint64_t round_trip_time = convert_to_time_in_us(freq, return_svc_clock_count - start_svc_clock_count);
 
 		printf("Performance Measurement: [Secure system call]\n");
 		printf("\tSystem counter frequency = %d\n", freq);
-		printf("\tOne way trip clock count = %" PRId64 " time = %" PRId64 " us\n", sys_call_one_way_clock_count, one_way_time);
-		printf("\tRound trip clock count = %" PRId64 " time = %" PRId64 " us\n", sys_call_round_trip_clock_count, round_trip_time);
+		printf("\tCounter: start=%" PRId64 " ta=%" PRId64 " end=%" PRId64 "\n", start_svc_clock_count, enter_svc_clock_count, return_svc_clock_count);
+		printf("\tOne way trip clock count = %" PRId64 " time = %" PRId64 " us\n", one_way_clock_count, one_way_time);
+		printf("\tRound trip clock count = %" PRId64 " time = %" PRId64 " us\n", round_trip_clock_count, round_trip_time);
 	}
 
 	return res;
