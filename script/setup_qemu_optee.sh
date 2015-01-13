@@ -43,7 +43,7 @@ STABLE_SOC_TERM_COMMIT=5ae80428709fa1a9d0854a2684c20eb0ec27e994
 
 SRC_KERNEL=git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 DST_KERNEL=$DEV_PATH/linux
-STABLE_KERNEL_COMMIT=v3.16
+STABLE_KERNEL_COMMIT=v3.18-rc1
 
 SRC_OPTEE_OS=https://github.com/kong1191/optee_os.git
 DST_OPTEE_OS=$DEV_PATH/optee_os
@@ -54,7 +54,6 @@ STABLE_OPTEE_CLIENT_COMMIT=2893f86b0925bc6be358a6913a07773b2b909ee3
 
 SRC_OPTEE_LK=https://github.com/kong1191/optee_linuxdriver.git
 DST_OPTEE_LK=$DEV_PATH/optee_linuxdriver
-STABLE_OPTEE_LK_COMMIT=a6026e5c41abe32fc973d8fa5e0fe281bf01a8f3
 
 SRC_TEETEST=ssh://$LINARO_USERNAME@linaro-private.git.linaro.org/srv/linaro-private.git.linaro.org/swg/teetest.git
 DST_TEETEST=$DEV_PATH/teetest
@@ -77,6 +76,11 @@ DST_AARCH32_GCC=$DEV_PATH/toolchains/$AARCH32_GCC
 ################################################################################
 # Cloning all needed repositories                                              #
 ################################################################################
+if [ ! -d "$DST_OPTEE_BENCHMARK" ]; then
+	git clone $SRC_OPTEE_BENCHMARK $DST_OPTEE_BENCHMARK
+else
+	echo " `basename $DST_OPTEE_BENCHMARK` already exist, not cloning"
+fi
 
 if [ ! -d "$DST_QEMU" ]; then
 	git clone $SRC_QEMU $DST_QEMU
@@ -103,7 +107,7 @@ fi
 
 if [ ! -d "$DST_KERNEL" ]; then
 	git clone $SRC_KERNEL $DST_KERNEL
-	(cd $DST_KERNEL && git reset --hard $STABLE_KERNEL_COMMIT)
+	(cd $DST_KERNEL && git reset --hard $STABLE_KERNEL_COMMIT && git am $DST_OPTEE_BENCHMARK/linux_patch/*)
 else
 	echo " `basename $DST_KERNEL` already exist, not cloning"
 fi
@@ -123,7 +127,6 @@ fi
 
 if [ ! -d "$DST_OPTEE_LK" ]; then
 	git clone $SRC_OPTEE_LK $DST_OPTEE_LK
-	(cd $DST_OPTEE_LK && git reset --hard $STABLE_OPTEE_LK_COMMIT)
 else
 	echo " `basename $DST_OPTEE_LK` already exist, not cloning"
 fi
@@ -133,12 +136,6 @@ if [ ! -d "$DST_TEETEST" ] && [ -n "$HAVE_ACCESS_TO_TEETEST" ]; then
 	(cd $DST_TEETEST && git reset --hard $STABLE_TEETEST_COMMIT)
 else
 	echo " `basename $DST_TEETEST` already exist (or no access), not cloning"
-fi
-
-if [ ! -d "$DST_OPTEE_BENCHMARK" ]; then
-	git clone $SRC_OPTEE_BENCHMARK $DST_OPTEE_BENCHMARK
-else
-	echo " `basename $DST_OPTEE_BENCHMARK` already exist, not cloning"
 fi
 
 if [ ! -d "$DST_GEN_ROOTFS" ]; then
