@@ -31,12 +31,6 @@
 #include <simple_ta.h>
 #include <arm_sys_counter.h>
 
-#define TIME_IN_US 1000000.0
-static uint64_t convert_to_time_in_us(uint32_t freq, uint64_t cnt)
-{
-	float one_clock_time_in_us = TIME_IN_US / (float)freq;
-	return (uint64_t)(cnt * one_clock_time_in_us);
-}
 
 TEEC_Result measure_time_of_open_session(TEEC_UUID *uuid, TEEC_Context *ctx, TEEC_Session *sess)
 {
@@ -85,18 +79,8 @@ TEEC_Result measure_time_of_open_session(TEEC_UUID *uuid, TEEC_Context *ctx, TEE
 		errx(1, "TEEC_Opensession failed with code 0x%x origin 0x%x",
 			res, err_origin);
 	} else {
-		uint32_t freq = arm_sys_counter_get_frequency();
-
-		uint64_t one_way_clock_count = counter_ta - counter_start;
-		uint64_t round_trip_clock_count = counter_end - counter_start;
-		uint64_t one_way_time = convert_to_time_in_us(freq, counter_ta - counter_start);
-		uint64_t round_trip_time = convert_to_time_in_us(freq, counter_end - counter_start);
-
-		printf("Performance Measurement: [Host app. to Trusted app. Open session]\n");
-		printf("\tSystem counter frequency = %d\n", freq);
-		printf("\tCounter: start=%" PRId64 " ta=%" PRId64 " end=%" PRId64 "\n", counter_start, counter_ta, counter_end);
-		printf("\tOne way trip clock count = %" PRId64 " time = %" PRId64 " us\n", one_way_clock_count, one_way_time);
-		printf("\tRound trip clock count = %" PRId64 " time = %" PRId64 " us\n", round_trip_clock_count, round_trip_time);
+		printf("ClientOpenSession: start=0x%" PRIx64 ", enter_ta=0x%" PRIx64 ", return=0x%" PRIx64 "\n",
+				counter_start, counter_ta, counter_end);
 	}
 
 	return res;
@@ -131,18 +115,8 @@ TEEC_Result measure_time_of_invoke_command(TEEC_Session *sess)
 		errx(1, "TEEC_InvokeCommand failed with code 0x%x origin 0x%x",
 			res, err_origin);
 	} else {
-		uint32_t freq = arm_sys_counter_get_frequency();
-
-		uint64_t one_way_clock_count = counter_ta - counter_start;
-		uint64_t round_trip_clock_count = counter_end - counter_start;
-		uint64_t one_way_time = convert_to_time_in_us(freq, counter_ta - counter_start);
-		uint64_t round_trip_time = convert_to_time_in_us(freq, counter_end - counter_start);
-
-		printf("Performance Measurement: [Host app. to Trusted app. Invoke command]\n");
-		printf("\tSystem counter frequency = %d\n", freq);
-		printf("\tCounter: start=%" PRId64 " ta=%" PRId64 " end=%" PRId64 "\n", counter_start, counter_ta, counter_end);
-		printf("\tOne way trip clock count = %" PRId64 " time = %" PRId64 " us\n", one_way_clock_count, one_way_time);
-		printf("\tRound trip clock count = %" PRId64 " time = %" PRId64 " us\n", round_trip_clock_count, round_trip_time);
+		printf("ClientInvokeCommand: start=0x%" PRIx64 ", enter_ta=0x%" PRIx64 ", return=0x%" PRIx64 "\n",
+				counter_start, counter_ta, counter_end);
 	}
 
 	return res;
@@ -180,18 +154,8 @@ TEEC_Result measure_time_of_secure_sys_call(TEEC_Session *sess)
 		errx(1, "TEEC_InvokeCommand failed with code 0x%x origin 0x%x",
 			res, err_origin);
 	} else {
-		uint32_t freq = arm_sys_counter_get_frequency();
-
-		uint64_t one_way_clock_count = enter_svc_clock_count - start_svc_clock_count;
-		uint64_t round_trip_clock_count = return_svc_clock_count - start_svc_clock_count;
-		uint64_t one_way_time = convert_to_time_in_us(freq, enter_svc_clock_count - start_svc_clock_count);
-		uint64_t round_trip_time = convert_to_time_in_us(freq, return_svc_clock_count - start_svc_clock_count);
-
-		printf("Performance Measurement: [Secure system call]\n");
-		printf("\tSystem counter frequency = %d\n", freq);
-		printf("\tCounter: start=%" PRId64 " ta=%" PRId64 " end=%" PRId64 "\n", start_svc_clock_count, enter_svc_clock_count, return_svc_clock_count);
-		printf("\tOne way trip clock count = %" PRId64 " time = %" PRId64 " us\n", one_way_clock_count, one_way_time);
-		printf("\tRound trip clock count = %" PRId64 " time = %" PRId64 " us\n", round_trip_clock_count, round_trip_time);
+		printf("SecureSysCall: start=0x%" PRIx64 ", enter_svc=0x%" PRIx64 ", return=0x%" PRIx64 "\n",
+				start_svc_clock_count, enter_svc_clock_count, return_svc_clock_count);
 	}
 
 	return res;
@@ -219,6 +183,9 @@ void measure_performance(void)
 	 * simple_ta.h, those must be the same UUID).
 	 */
 	TEEC_UUID uuid = SIMPLE_TA_UUID;
+
+	uint32_t freq = arm_sys_counter_get_frequency();
+	printf("CounterTimerFrequency: 0x%x\n", freq);
 
 	res = measure_time_of_open_session(&uuid, &ctx, &sess);
 	if (res != TEEC_SUCCESS) {

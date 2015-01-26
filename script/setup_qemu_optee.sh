@@ -107,7 +107,7 @@ fi
 
 if [ ! -d "$DST_KERNEL" ]; then
 	git clone $SRC_KERNEL $DST_KERNEL
-	(cd $DST_KERNEL && git reset --hard $STABLE_KERNEL_COMMIT && git am $DST_OPTEE_BENCHMARK/linux_patch/*)
+	(cd $DST_KERNEL && git reset --hard $STABLE_KERNEL_COMMIT)
 else
 	echo " `basename $DST_KERNEL` already exist, not cloning"
 fi
