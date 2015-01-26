@@ -1,0 +1,51 @@
+CounterTimerFrequency: 0x3b9aca0
+TEEDriver: do smc call, cmd=0, cntvct=0x485036d69
+TEEDriver: finish smc call, cmd=0, cntvct=0x485113ca3
+ClientOpenSession: start=0x485030c14, enter_ta=0x4850eb290, return=0x48511f7d7
+TEEDriver: do smc call, cmd=1, cntvct=0x485138365
+TEEDriver: finish smc call, cmd=1, cntvct=0x48518bb94
+ClientInvokeCommand: start=0x48513273c, enter_ta=0x48514fb4e, return=0x48519a799
+TEEDriver: do smc call, cmd=1, cntvct=0x4851b6404
+TEEDriver: finish smc call, cmd=1, cntvct=0x485205c55
+SecureSysCall: start=0x4851dda81, enter_svc=0x4851e519c, return=0x4851e5ab6
+TEEDriver: do smc call, cmd=2, cntvct=0x48521c276
+TEEDriver: finish smc call, cmd=2, cntvct=0x4853763d5
+
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: receiving smc call, cmd=0, cntvct=0x48503f201
+DBG TEE-CORE:tee_ta_init_static_ta_session:1198:    Lookup for Static TA 99e937a0-8f3e-11e4
+DBG TEE-CORE:tee_ta_init_session_with_signed_ta:1242:    Load dynamic TA
+DBG TEE-CORE:tee_ta_load:653: Loaded TA at 0x7e100000, ro_size 28796, rw_size 576, zi_size 14513
+DBG TEE-CORE:tee_ta_load:654: ELF load address 0x200000
+DBG TEE-CORE:tee_ta_init_session_with_signed_ta:1251:       dyn TA : 99e937a0-8f3e-11e4
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_CreateEntryPoint:49: has been called
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+tee_user_mem_alloc:342: Allocate: link:[0x1fffc4], buf:[0x1fffd4:16]
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_OpenSessionEntryPoint:90: has been called (session opened with the Simple TA)
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: finish smc call, cmd=0, cntvct=0x48510219c
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: receiving smc call, cmd=1, cntvct=0x485140762
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_InvokeCommandEntryPoint:122: Enter Invoke Command Entry Point
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_InvokeCommandEntryPoint:183: Leave Invoke Command Entry Point
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: finish smc call, cmd=1, cntvct=0x48517dc5c
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: receiving smc call, cmd=1, cntvct=0x4851bcb0b
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_InvokeCommandEntryPoint:122: Enter Invoke Command Entry Point
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #56
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_InvokeCommandEntryPoint:183: Leave Invoke Command Entry Point
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: finish smc call, cmd=1, cntvct=0x4851f89ea
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: receiving smc call, cmd=2, cntvct=0x485223b7a
+DBG TEE-CORE:tee_ta_close_session:1069: tee_ta_close_session(7df37f14)
+DBG TEE-CORE:tee_ta_close_session:1084:    ... Destroy session
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_CloseSessionEntryPoint:103: has been called (session with the Comcast Crypto TA will be closed)
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+tee_user_mem_free:441: Free: link:[0x1fffc4], buf:[0x1fffd4:16]
+FLW TEE-CORE:tee_svc_trace_syscall:53: syscall #1
+DBG USER-TA:TA_DestroyEntryPoint:59: has been called
+DBG TEE-CORE:tee_ta_destroy_context:1022:    ... Destroy TA ctx
+MSG TEE-CORE:print_cntvct_with_message:328: TEECore: finish smc call, cmd=2, cntvct=0x485368d9e
+

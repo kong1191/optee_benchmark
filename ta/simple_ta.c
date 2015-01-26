@@ -28,6 +28,7 @@
 #include "string.h"
 
 #include <utee_defines.h>
+#include <utee_types.h>
 #include <assert.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -68,7 +69,7 @@ void TA_DestroyEntryPoint(void)
 TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 		TEE_Param  params[4], void **sess_ctx)
 {
-	uint64_t ta_counter_value = arm_sys_counter_get_counter();
+	uint64_t ta_counter_value = read_cntvct();
 
 	uint32_t exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_MEMREF_OUTPUT,
 						   TEE_PARAM_TYPE_NONE,
@@ -81,7 +82,8 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 	(void)&sess_ctx;
 
 	/* Return system counter value to Host app */
-	memcpy(params[0].memref.buffer, &ta_counter_value, sizeof(ta_counter_value));
+	memcpy(params[0].memref.buffer, &ta_counter_value,
+			sizeof(ta_counter_value));
 
 	/*
 	 * The DMSG() macro is non-standard, TEE Internal API doesn't
@@ -100,7 +102,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 void TA_CloseSessionEntryPoint(void *sess_ctx)
 {
 	(void)&sess_ctx; /* Unused parameter */
-	DMSG("has been called (session with the Comcast Crypto TA will be closed)");
+	DMSG("has been called (session with the Simple TA will be closed)");
 }
 
 
@@ -113,11 +115,14 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 			uint32_t param_types, TEE_Param params[4])
 {
 	TEE_Result result = TEE_SUCCESS;
-	uint64_t enter_function_counter_value = arm_sys_counter_get_counter();
+	uint64_t enter_function_counter_value = read_cntvct();
 	uint64_t sys_call_start_counter_value = 0;
 	uint64_t sys_call_received_counter_value = 0;
 	uint64_t sys_call_return_counter_value = 0;
 	uint32_t exp_param_types = 0;
+	struct generic_timer_info timer_info;
+	size_t buffer_size = sizeof(timer_info);
+	char timer_property_string[] = "ext.tee.arm.genericTimerInfo";
 
 	DMSG("Enter Invoke Command Entry Point");
 
@@ -143,20 +148,30 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 			break;
 		}
 
-		sys_call_start_counter_value = arm_sys_counter_get_counter();
+		sys_call_start_counter_value = read_cntvct();
 
-		TEE_GetSystemCounter(&sys_call_received_counter_value);
+		result = TEE_GetPropertyAsBinaryBlock(
+					TEE_PROPSET_TEE_IMPLEMENTATION,
+					timer_property_string,
+					&timer_info, &buffer_size);
 
-		sys_call_return_counter_value = arm_sys_counter_get_counter();
+		if (result != TEE_SUCCESS)
+			break;
+
+		sys_call_received_counter_value = timer_info.virtual_counter_value;
+		sys_call_return_counter_value = read_cntvct();
 
 		params[0].memref.size = sizeof(sys_call_start_counter_value);
-		memcpy(params[0].memref.buffer, &sys_call_start_counter_value, params[0].memref.size);
+		memcpy(params[0].memref.buffer, &sys_call_start_counter_value,
+				params[0].memref.size);
 
 		params[1].memref.size = sizeof(sys_call_received_counter_value);
-		memcpy(params[1].memref.buffer, &sys_call_received_counter_value, params[1].memref.size);
+		memcpy(params[1].memref.buffer, &sys_call_received_counter_value,
+				params[1].memref.size);
 
 		params[1].memref.size = sizeof(sys_call_return_counter_value);
-		memcpy(params[2].memref.buffer, &sys_call_return_counter_value, params[1].memref.size);
+		memcpy(params[2].memref.buffer, &sys_call_return_counter_value,
+				params[1].memref.size);
 
 		break;
 
@@ -171,7 +186,8 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 			break;
 		}
 
-		memcpy(params[0].memref.buffer, &enter_function_counter_value, sizeof(enter_function_counter_value));
+		memcpy(params[0].memref.buffer, &enter_function_counter_value,
+				sizeof(enter_function_counter_value));
 		params[0].memref.size = sizeof(enter_function_counter_value);
 		break;
 

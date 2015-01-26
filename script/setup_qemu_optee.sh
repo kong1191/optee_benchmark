@@ -298,6 +298,10 @@ dir /data/tee 755 0 0
 
 # TAs
 dir /lib/teetz 755 0 0
+
+file /lib/teetz/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta $DST_OPTEE_BENCHMARK/ta/out-client-aarch32/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta 444 0 0
+
+file /bin/simple_client $DST_OPTEE_BENCHMARK/host/simple_client 755 0 0
 EOF
 
 if [ -n "$HAVE_ACCESS_TO_TEETEST" ]; then
@@ -328,6 +332,7 @@ export PLATFORM=vexpress
 export PLATFORM_FLAVOR=qemu_virt
 export O=$DEV_PATH/out-os-qemu
 export CFG_TEE_CORE_LOG_LEVEL=4
+export CFG_TEE_TRACE_PERFORMANCE=y
 export DEBUG=0
 
 cd $DST_OPTEE_OS
@@ -387,7 +392,7 @@ cat > $DEV_PATH/build_optee_linuxkernel.sh << EOF
 export PATH=$DST_AARCH32_GCC/bin:\$PATH
 
 cd $DST_KERNEL
-make V=0 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- LOCALVERSION= M=$DST_OPTEE_LK modules \$@
+make CONFIG_TEE_TRACE_PERFORMANCE=y V=0 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- LOCALVERSION= M=$DST_OPTEE_LK modules \$@
 EOF
 
 chmod 711 $DEV_PATH/build_optee_linuxkernel.sh
@@ -442,6 +447,7 @@ if [ -f "build_optee_tests.sh" ]; then
 	./build_optee_tests.sh
 fi
 ./build_optee_linuxkernel.sh
+$DST_OPTEE_BENCHMARK/build_app.sh
 ./update_rootfs.sh
 ./build_bios.sh cscope all
 EOF

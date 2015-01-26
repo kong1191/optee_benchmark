@@ -233,6 +233,10 @@ dir /data/tee 755 0 0
 
 # TAs
 dir /lib/teetz 755 0 0
+
+file /lib/teetz/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta $DST_OPTEE_BENCHMARK/ta/out-client-aarch64/99e937a0-8f3e-11e4-8b8f0002a5d5c51b.ta 444 0 0
+
+file /bin/simple_client $DST_OPTEE_BENCHMARK/host/simple_client 755 0 0
 EOF
 
 if [ -n "$HAVE_ACCESS_TO_OPTEE_TEST" ]; then
@@ -248,6 +252,7 @@ file /lib/teetz/e6a33ed4-562b-463a-bb7eff5e15a493c8.ta $DEV_PATH/out/utest/user_
 # OP-TEE Tests
 file /bin/xtest $DEV_PATH/out/utest/host/xtest/bin/xtest 755 0 0
 EOF
+
 fi
 
 ################################################################################
@@ -262,6 +267,7 @@ export PLATFORM=vexpress
 export PLATFORM_FLAVOR=fvp
 export O=$DST_OPTEE_OS/out-os-fvp
 export CFG_TEE_CORE_LOG_LEVEL=4
+export CFG_TEE_TRACE_PERFORMANCE=y
 #export DEBUG=1
 
 cd $DST_OPTEE_OS
@@ -376,7 +382,7 @@ cat > $DEV_PATH/build_optee_linuxkernel.sh << EOF
 export PATH=$DST_AARCH64_GCC/bin:\$PATH
 
 cd $DST_KERNEL
-make V=0 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- LOCALVERSION= M=$DST_OPTEE_LK modules \$@
+make CONFIG_TEE_TRACE_PERFORMANCE=y V=0 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- LOCALVERSION= M=$DST_OPTEE_LK modules \$@
 EOF
 
 chmod 711 $DEV_PATH/build_optee_linuxkernel.sh
@@ -419,6 +425,7 @@ make O=./out-client-aarch64 \\
 EOF
 
 chmod 711 $DST_OPTEE_BENCHMARK/build_app.sh
+$DST_OPTEE_BENCHMARK/build_app.sh
 
 ################################################################################
 # Generate build_device_tree_files.sh                                          #

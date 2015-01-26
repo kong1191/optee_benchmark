@@ -68,12 +68,12 @@ TEEC_Result measure_time_of_open_session(TEEC_UUID *uuid, TEEC_Context *ctx, TEE
 	op.params[0].tmpref.buffer = (void *)&counter_ta;
 	op.params[0].tmpref.size = sizeof(counter_ta);
 
-	counter_start = arm_sys_counter_get_counter();
+	counter_start = read_cntvct();
 
 	res = TEEC_OpenSession(ctx, sess, uuid,
 			       TEEC_LOGIN_PUBLIC, NULL, &op, &err_origin);
 
-	counter_end = arm_sys_counter_get_counter();
+	counter_end = read_cntvct();
 
 	if (res != TEEC_SUCCESS) {
 		errx(1, "TEEC_Opensession failed with code 0x%x origin 0x%x",
@@ -105,11 +105,11 @@ TEEC_Result measure_time_of_invoke_command(TEEC_Session *sess)
 	op.params[0].tmpref.buffer = (void *)&counter_ta;
 	op.params[0].tmpref.size = sizeof(counter_ta);
 
-	counter_start = arm_sys_counter_get_counter();
+	counter_start = read_cntvct();
 
 	res = TEEC_InvokeCommand(sess, TAF_REPORT_TIMESTAMP, &op, &err_origin);
 
-	counter_end = arm_sys_counter_get_counter();
+	counter_end = read_cntvct();
 
 	if (res != TEEC_SUCCESS) {
 		errx(1, "TEEC_InvokeCommand failed with code 0x%x origin 0x%x",
@@ -184,7 +184,7 @@ void measure_performance(void)
 	 */
 	TEEC_UUID uuid = SIMPLE_TA_UUID;
 
-	uint32_t freq = arm_sys_counter_get_frequency();
+	uint32_t freq = read_cntfrq();
 	printf("CounterTimerFrequency: 0x%x\n", freq);
 
 	res = measure_time_of_open_session(&uuid, &ctx, &sess);
