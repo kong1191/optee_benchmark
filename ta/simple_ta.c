@@ -158,7 +158,7 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 		if (result != TEE_SUCCESS)
 			break;
 
-		sys_call_received_counter_value = timer_info.virtual_counter_value;
+		sys_call_received_counter_value = timer_info.counter_value;
 		sys_call_return_counter_value = read_cntvct();
 
 		params[0].memref.size = sizeof(sys_call_start_counter_value);
