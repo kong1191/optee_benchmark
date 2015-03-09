@@ -1,7 +1,7 @@
 Simple client and simple TA for OP-TEE benchmark
 ---
 
-This simple host/trusted application serves the purpose of measuring the performance of OP-TEE. They are based on the customized [optee_linuxdriver](https://github.com/kong1191/optee_linuxdriver) and [optee_os](https://github.com/kong1191/optee_os).
+This simple host/trusted application serves the purpose of measuring the performance of OP-TEE.
 
 Building and running the applications on QEMU
 ---
@@ -18,7 +18,7 @@ When that has been done and the files has been saved, you need to regenerate the
 3. Load the kernel module for OP-TEE and launch tee-supplicant, by typing:
 
    ```
-   $ modprobe optee
+   $ modprobe optee_armtz
    $ tee-supplicant &
    ```
 4. Launch the test (and thereby the TA), by typing:
@@ -32,7 +32,7 @@ Building and running the applications on FVP
 #### Building
 Easiest way to test this is to run the script [setup_fvp_optee.sh](script/setup_fvp_optee.sh). This script will setup the complete environment needed to run OP-TEE on FVP.
 
-When that has been done and the files has been saved, you need to regenerate the filesystem. That could be done by running the script ```build_secure.sh``` and then ```build_normal.sh```. 
+When that has been done and the files has been saved, you need to regenerate the filesystem. That could be done by running the script ```build_secure.sh```, ```optee_benchmark/build_app.sh``` and then ```build_normal.sh```. 
 
 #### Running
 
@@ -41,7 +41,7 @@ When that has been done and the files has been saved, you need to regenerate the
 2. Load the kernel module for OP-TEE and launch tee-supplicant, by typing:
 
    ```
-   $ modprobe optee
+   $ modprobe optee_armtz
    $ tee-supplicant &
    ```
 3. Launch the test (and thereby the TA), by typing:
